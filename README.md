@@ -3,8 +3,8 @@
 ## Overview
 InsightBot is a comprehensive company insights chatbot that provides detailed information about companies, including ratings, reviews, locations, and employee counts. The application can be run locally using Streamlit or as a server-client architecture for high-performance requirements.
 
-## Sampple Output
-![](https://drive.google.com/file/d/16hNr4tPcr3LCznZEm9r8a1-iLMRh264s/view?usp=sharing)
+## Sample Output
+![Project Image](https://drive.google.com/uc?id=16hNr4tPcr3LCznZEm9r8a1-iLMRh264s)
 
 ## Directory Structure
 - **data/**: Contains the dataset file.
