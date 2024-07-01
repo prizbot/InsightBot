@@ -1,33 +1,28 @@
-from pydantic import BaseModel
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-import csv
-import time
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.llms import Ollama
+from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
+import time
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import csv
+import os
 
 app = FastAPI()
 
-# Static files (HTML, CSS, JS)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-# Paths and constants
 DB_FAISS_PATH = "vectorstore/db_faiss"
 file_path = "data/companyreview_dataset.csv"
 
-# Load data
+# Verify the number of rows in the CSV file
 with open(file_path, 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     row_count = sum(1 for row in reader) - 1  # subtract 1 for header row
     print(f"Total number of rows in the CSV file: {row_count}")
 
+# Load data
 start_time = time.time()
 loader = CSVLoader(file_path, encoding="utf-8", csv_args={'delimiter': ','})
 data = loader.load()
@@ -39,6 +34,10 @@ start_time = time.time()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
 text_chunks = text_splitter.split_documents(data)
 print(f"Text split into {len(text_chunks)} chunks in {time.time() - start_time} seconds.")
+
+# Print out a few chunks to inspect
+for i, chunk in enumerate(text_chunks[:5]):
+    print(f"Chunk {i}: {chunk.page_content[:500]}")  # Print the first 500 characters of each chunk
 
 # Download Sentence Transformers Embedding From Hugging Face
 start_time = time.time()
@@ -84,10 +83,11 @@ def query(request: QueryRequest):
     response_time = time.time() - start_time
     return QueryResponse(answer=answer, response_time=response_time)
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    except Exception as e:
+        print(f"Error: {e}")
+        os.system("lsof -ti:8000 | xargs kill -9")  # Free up port 8000 if occupied
+        uvicorn.run(app, host="0.0.0.0", port=8000)
