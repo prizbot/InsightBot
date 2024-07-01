@@ -24,7 +24,7 @@ InsightBot is a comprehensive company insights chatbot that provides detailed in
 ## Installation
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-username/InsightBot.git
+   git clone https://github.com/prizbot/InsightBot.git
    cd InsightBot
 2. Install the required dependencies:
    ```sh
